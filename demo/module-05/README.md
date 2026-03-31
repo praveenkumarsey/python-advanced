@@ -19,7 +19,7 @@ By the end of Module 5 you will be able to:
 
 ## Concurrency Model Comparison
 
-| Dimension | `threading` | `multiprocessing` | `asyncio` (Day 6) |
+| Dimension | `threading` | `multiprocessing` | `asyncio` (Module 6) |
 |---|---|---|---|
 | **GIL impact** | Limited for CPU | Bypasses GIL | N/A (single thread) |
 | **Best for** | I/O-bound | CPU-bound | Async I/O at scale |
@@ -144,7 +144,7 @@ Extend `10_validation_service_concurrent.py`:
 
 ## What's Next
 
-**Day 6** covers `asyncio` — Python's cooperative concurrency model.  
-Where Module 5 uses threads/processes (OS-managed), Day 6 uses coroutines (Python-managed).  
+**Module 6** covers `asyncio` — Python's cooperative concurrency model.  
+Where Module 5 uses threads/processes (OS-managed), Module 6 uses coroutines (Python-managed).  
 `asyncio` is the right choice when you need thousands of concurrent I/O operations  
 with minimal memory overhead (e.g., web servers, API gateways, streaming pipelines).

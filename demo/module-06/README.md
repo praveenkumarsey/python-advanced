@@ -19,9 +19,9 @@ By the end of Module 6 you will be able to:
 
 ---
 
-## Async vs Threading (Day 5)
+## Async vs Threading (Module 5)
 
-| Dimension | `asyncio` (Day 6) | `threading` (Day 5) |
+| Dimension | `asyncio` (Module 6) | `threading` (Module 5) |
 |---|---|---|
 | **Concurrency model** | Cooperative (yield with `await`) | Pre-emptive (OS switches) |
 | **Thread count** | 1 thread | N threads |
@@ -35,7 +35,7 @@ By the end of Module 6 you will be able to:
 **Rule of thumb:**
 - Async scales better for I/O at high concurrency (>100 connections)
 - Threads are simpler for small concurrency or legacy blocking libraries
-- CPU-bound: neither — use `ProcessPoolExecutor` (Day 5)
+- CPU-bound: neither — use `ProcessPoolExecutor` (Module 5)
 
 ---
 
@@ -71,6 +71,7 @@ By the end of Module 6 you will be able to:
 | `09_mixing_sync_async.py` | Sync ↔ async bridge | `run_in_executor()`, `asyncio.run()` |
 | `10_async_validation_service.py` | Real-world async app | concurrent rules, 10 concurrent clients |
 | `11_async_antipatterns.py` | What not to do | 6 anti-patterns with BAD/GOOD/WHY |
+| `12_fastapi_async_api.py` | **FastAPI HTTP server** | Pydantic models, async routes, gather inside route, Semaphore, lifespan |
 
 ---
 
@@ -90,6 +91,12 @@ python demo/module-06/08_async_semaphore_rate_limiting.py
 python demo/module-06/09_mixing_sync_async.py
 python demo/module-06/10_async_validation_service.py
 python demo/module-06/11_async_antipatterns.py
+
+# File 12 — FastAPI server (requires: pip install fastapi uvicorn)
+# Run benchmark only (no HTTP server):
+python demo/module-06/12_fastapi_async_api.py --bench
+# Start the HTTP server (Ctrl+C to stop):
+python demo/module-06/12_fastapi_async_api.py --serve
 
 # Verify all pass silently
 for f in demo/module-06/*.py; do

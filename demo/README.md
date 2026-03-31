@@ -14,10 +14,10 @@ Working professionals from data engineering backgrounds who are:
 
 ---
 
-## Topics by Day
+## Topics by Module
 
-| Day | Module | Topics |
-|-----|--------|--------|
+| Module | Title | Topics |
+|--------|-------|--------|
 | Module 1 | Foundations + OOP | References, mutability, functions, exceptions, modules, class vs instance, encapsulation, properties, inheritance, composition, ABCs, OOP anti-patterns |
 | Module 2 | Advanced Object Modeling | `__repr__`, `__eq__`, dataclasses, properties, context managers, decorators, plugin registration |
 
@@ -111,7 +111,7 @@ demo/
 
 ## Trainer Notes
 
-- Run demos sequentially within each day — concepts build progressively.
+- Run demos sequentially within each module — concepts build progressively.
 - Each file is self-contained and prints its own output.
 - You can live-edit and re-run any file to show variations.
 - For `03_modules_demo`, always run from the repository root using `python module-01/03_modules_demo/main.py`.

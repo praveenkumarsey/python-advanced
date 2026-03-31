@@ -76,7 +76,7 @@ python module-01/08_oop_antipatterns.py
 ## Optional Extension Ideas
 
 - In `01`: What happens when you mutate a nested list inside a tuple?
-- In `02`: Write a decorator that handles exceptions uniformly (preview of Day 2).
+- In `02`: Write a decorator that handles exceptions uniformly (preview of Module 2).
 - In `04`: Add a `__del__` method and observe when it fires.
 - In `06`: Add a third formatter (e.g., `MarkdownFormatter`) to the composition example without changing `ReportService`.
 - In `07`: Add a second abstract method and observe what happens when a subclass implements only one.
