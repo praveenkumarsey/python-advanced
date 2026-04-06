@@ -14,7 +14,7 @@
 # it convenient for a first build — pip can compile any C extensions without
 # extra setup. The trade-off is a large final image (~900 MB).
 # We address this in Dockerfile.multistage using the slim variant.
-FROM python:3.11
+FROM python:3.12-slim
 
 # Set the working directory inside the container.
 # All subsequent COPY, RUN, and CMD instructions resolve paths relative to /app.

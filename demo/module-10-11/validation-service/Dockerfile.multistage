@@ -18,7 +18,7 @@
 # (some packages include native code). All build machinery — gcc, pip, headers —
 # lives only in this stage. Nothing from "builder" reaches the final image
 # except the installed package files we explicitly copy in Stage 2.
-FROM python:3.11 AS builder
+FROM python:3.12 AS builder
 
 # Separate working directory for the build stage.
 # Keeping it distinct from /app (used in Stage 2) makes intent clear.
@@ -30,12 +30,41 @@ WORKDIR /build
 COPY requirements.txt .
 
 # Install packages under /build/install rather than the system Python paths.
-# --prefix=/install writes all packages into /build/install/lib/python3.11/...
+# --prefix=/build/install writes all packages into /build/install/lib/pythonX.Y/...
 # creating a self-contained, relocatable directory tree. In Stage 2 we copy
 # this entire tree to /usr/local where the runtime Python can find it.
 # Without --prefix, packages land in the system site-packages and would be
 # harder to copy selectively.
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+#
+# IMPORTANT: the prefix path must be absolute and must exactly match the path
+# used in the COPY --from=builder instruction in Stage 2.
+RUN pip install --no-cache-dir --prefix=/build/install -r requirements.txt
+
+# Copy application source into the builder so we can compile it here.
+# We do NOT copy in Stage 2 via COPY . . — we copy only the compiled bytecode
+# output produced below, keeping raw .py files out of the final image.
+COPY . /build/src
+
+# Compile every .py file to optimised bytecode (.pyc) using Python's built-in
+# compileall module.
+#
+# Why compile to bytecode?
+#   - CPython always compiles .py → .pyc before execution; shipping pre-compiled
+#     files means the first import of each module is faster (no parse step).
+#   - The runtime image contains no raw source code, which reduces exposure of
+#     proprietary logic if the container is ever extracted or inspected.
+#
+# Flags explained:
+#   -b          write .pyc files next to their .py source (in the same directory)
+#               rather than inside __pycache__/. This makes the output path
+#               predictable for the COPY instruction below.
+#   -o 2        optimisation level 2: removes docstrings AND assert statements
+#               in addition to the level-1 removal of debug metadata. Smaller
+#               bytecode; suitable for production images that don't need asserts.
+#   -q          quiet — suppress individual file lines, show only errors.
+#
+# Result: /build/src/main.pyc, /build/src/validator.pyc (and any other modules)
+RUN python -m compileall -b -o 2 -q /build/src
 
 # =============================================================================
 # STAGE 2 — runtime: lean production image, only packages + app code
@@ -45,7 +74,7 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 # no gcc, no pip, no build tools. This is what makes the final image small.
 # Build tools are not needed at runtime; keeping them would only increase
 # the image size and the potential attack surface.
-FROM python:3.11-slim AS runtime
+FROM python:3.12-slim AS runtime
 
 WORKDIR /app
 
@@ -56,10 +85,28 @@ WORKDIR /app
 # The builder stage itself (and its ~700 MB of build tools) is discarded here.
 COPY --from=builder /build/install /usr/local
 
-# Copy the application source code from the build context (your local machine).
-# Files excluded by .dockerignore (tests/, .git/, *.md, etc.) are not sent
-# to the Docker daemon and therefore cannot appear in the image.
-COPY . .
+# Tell the Python runtime never to write new .pyc files at startup.
+# All bytecode is already compiled in the builder stage; allowing Python to
+# write .pyc files would create noise in the container's file system and
+# fail under read-only mounts or when running as a non-root user.
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Silence the byte-compilation warnings that uvicorn / importlib may emit
+# when PYTHONDONTWRITEBYTECODE is set but runtime still tries briefly.
+ENV PYTHONUNBUFFERED=1
+
+# Copy ONLY the compiled bytecode files from the builder.
+# --from=builder /build/src/*.pyc copies main.pyc, validator.pyc, etc.
+# Raw .py source files are left behind in the builder stage and never reach
+# the runtime image — keeping proprietary logic out of the shipped container.
+#
+# Note: we rename the destination to /app/*.pyc (same flat layout) so uvicorn
+# can resolve `main:app` as it would from main.pyc in the working directory.
+COPY --from=builder /build/src/*.pyc ./
+
+# Copy static assets that are not Python source — requirements.txt is not
+# needed at runtime but any config files or data directories would go here.
+# (Nothing extra in this project beyond the compiled modules above.)
 
 # Create and switch to a non-root user.
 # Containers run as root by default. If an attacker exploits a vulnerability
